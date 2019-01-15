@@ -1,0 +1,104 @@
+---
+title: "Dataset selection"
+author: "Jacques Marc-Antoine"
+date: "January 14, 2019"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Flights dataset
+
+### The dataset
+Available as an R package "nycflights13".
+
+Records of flights with departure time, destination, delay, model of the plane, company...
+```{r cars}
+library(nycflights13)
+nycflights13::flights
+```
+
+The package also contain some extra data on airports (location), planes (size, engines), hourly weather in the different airports.
+```{r eval=F}
+nycflights13::airports
+nycflights13::airlines
+nycflights13::planes
+nycflights13::weather
+```
+
+### Potential tasks
+
+* Regression: Predict delay according to meteo.
+
+* Classification: Which company are reliable? Which are not? 
+
+
+## TMDB 5000 Movie Dataset
+
+### The dataset
+Available on kaggle at: https://www.kaggle.com/tmdb/tmdb-movie-metadata
+
+Comprises 2 datasets, one for movies (ratings, budget...), one for credits (actors and crew)
+
+```{r}
+library(data.table)
+movies <- fread("data/tmdb_5000_movies.csv", nThread = 4)
+str(movies)
+#head(movies, 3)
+
+credits <- fread("data/tmdb_5000_credits.csv", nThread = 4)
+str(credits)
+#head(credits, 3)
+```
+
+These tables can be merged using titles of the movies.
+
+### Possible tasks
+
+* Regression: Predict popularity based on actors, budget...
+
+* Classification: Is Nicolas Cage playing in this movie?
+
+* NLP: Mine the short abstracts for more features?
+
+### Related dataset
+
+Can be crossed with: https://www.kaggle.com/rounakbanik/the-movies-dataset#movies_metadata.csv
+
+## 120 years of Olympics
+
+### The dataset
+Available on kaggle at:https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results
+
+It's a pretty simple dataset containing physical attributes of athletes, their sport and medals:
+```{r}
+athletes <- fread("data/athlete_events.csv")
+head(athletes, 5)
+```
+
+### Possible tasks:
+
+* Which physical attributes increases chance of medals in a given sport?
+
+
+## New York Stock Exchange
+
+### The dataset
+Available on kaggle: https://www.kaggle.com/dgawlik/nyse#securities.csv
+
+Info on companies (value, activity...) and time-series data (stock exchange).
+```{r}
+stock <- fread("data/prices.csv")
+stock
+securities <- fread("data/securities.csv")
+head(securities,5)
+```
+
+### Possible tasks
+
+* Time-series forecasting
+
