@@ -23,6 +23,12 @@ options(htmltools.dir.version = FALSE)
 
 Image credit: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sharingan_triple.svg)
 
+---
+class: center, middle
+
+# xaringan
+
+### /ʃaː.'riŋ.ɡan/
 
 ---
 class: inverse, center, middle

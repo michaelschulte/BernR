@@ -1,0 +1,444 @@
+---
+title: "Time Series in R - BernR Meetup"
+author: "Isabel Martinez"
+date: "9/9/2019"
+output:
+  beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, results='hide', evaluate = FALSE, message=FALSE, warning=FALSE}
+# library(tsbox)
+# library(ggplot2)
+# library(tidyverse)
+```
+## Overview
+
+Time series as data type in base R
+
+\bigskip
+
+Seasonal adjustment made easy
+
+\bigskip
+
+Visualizing data with ts.plot
+
+\bigskip
+
+tsbox
+
+
+## Time series
+
+Many data have a time dimension which naturally structures the data. In econ, typical examples include:
+
+- annual profits of a company
+- quarterly sales
+- monhtly imports and exports
+- daily stock prices or exchange rates
+
+
+
+## Example: Swiss Stock Exchange Index SMI
+
+```{r EuStockMarkets, echo = FALSE}
+ts.plot(EuStockMarkets[, "SMI"], 
+         ylab = "", xlab = "", lwd = 2, col = "red")
+grid(NULL, NULL, lwd = 1, col = "gray61")
+```
+
+<!-- I did't manage to make 2-column slides, but the following code would make 16:9 slides: -->
+<!-- output: -->
+<!--   beamer_presentation: -->
+<!-- classoption: "aspectratio=169" -->
+
+## Time series objects in R
+- Can define data as time series; very handy, e.g., to:
+     - compute growth rates
+     - work with lagged values
+     - seasonally adjust the data
+- Base R knows the object class ts
+- Just have to tell R the start date and the frequency of our data 
+
+\pause
+\medskip
+
+- Many popular packages for time series exist, \newline
+e.g., zoo and xts
+- They all come with their own syntayx...
+- ... and object classes
+- Great source for confusion if you're just starting out!
+
+
+
+## Defining a ts-object: annual series
+```{r, echo=TRUE}
+
+values <- round(runif(24, min = 1, max = 50))
+
+# annual series
+ts(values, frequency = 1, start = 1959)
+
+```
+
+## Defining a ts-object: quarterly series
+- Definition of frequency: observations per year
+
+- Quarterly data: 4 observations per year $\rightarrow$ frequency = 4
+
+```{r, echo=TRUE}
+
+# quarterly series
+ts(values, frequency = 4, start = c(1959, 2))
+
+```
+
+
+
+## Defining a ts-object: monthly series
+
+```{r, echo=TRUE}
+
+# monthly series
+ts(values, frequency = 12, start = c(1959, 1))
+
+```
+
+
+## Defining a ts-object: decennial series
+
+```{r, echo=TRUE}
+values <- round(runif(12, min = 1, max = 50))
+
+# decennial series
+ts(values, frequency = 0.1, start = 1860)
+
+
+```
+
+
+## Useful functions with ts objects
+
+```{r , echo=TRUE, results="hide"}
+# what is the time frame of a given ts?
+time(AirPassengers)
+
+# what is the frequency of a given ts?
+frequency(AirPassengers)
+```
+
+
+```{r, echo=TRUE}
+# select a certain time window
+window(AirPassengers,
+       start = c(1949, 10), 
+       end = c(1951, 7))
+```
+ 
+```{r,  results="hide"}
+# work with lags and leading values
+stats::lag(AirPassengers, 12)
+
+```
+
+
+
+## Dealing with seasonality
+- TS often have systematic seasonal patterns 
+
+- These patterns add noise to our measurement
+
+- We are often more interested in what the trend value of a variable is, rather than its actual value in a given month
+
+- Seasonal patterns make it hard to compare values of a variable at two different points in time
+
+## Example: Monthly totals of international airline passengers
+```{r AirPassengers, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+
+ts.plot(AirPassengers, 
+         ylab = "", xlab = "", lwd = 2, col = "black")
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+```
+## Seasonal adjutment made easy with "seasonal"
+- Great package by Christoph Sax for seasonal adjustment
+
+- Method: X-13ARIMA-SEATS (US-Census Bureau)
+
+- Objects must be of ts class
+
+- Quick and easy, no need to set model parameters \newline
+(but you can!)
+
+```{r, echo=TRUE}
+library(seasonal)
+??seas
+
+# obtain seasonally adjusted series
+AirPassengers_sa <- final(seas(AirPassengers))
+
+# obtain trend series
+AirPassengers_t <- trend(seas(AirPassengers))
+
+```
+
+
+## Example: Monthly totals of international airline passengers
+```{r , echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+
+ts.plot(AirPassengers, AirPassengers_sa,
+         ylab = "", xlab = "", lwd = 2, col = c("black", "red"))
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+```
+
+## Example: Monthly totals of international airline passengers
+```{r , echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+
+ts.plot( AirPassengers_sa, AirPassengers_t,
+         ylab = "", xlab = "", lwd = c(2, 1.5), col = c("red", "blue"))
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+```
+
+
+
+## Plotting ts objects: ts.plot (base R)
+- ts.plot (base R) quickly plots ts objects
+
+```{r, echo = TRUE, fig.height = 3.5, fig.width = 4.5, fig.align = "center"}
+ts.plot(AirPassengers)
+```
+
+
+
+## Modifying basic aspects of the graph
+```{r, echo = TRUE, results="hide", fig.show = 'hide'}
+ts.plot(AirPassengers, 
+        ylab = "International airline passengers", 
+        xlab = "", 
+        lwd = 2, 
+        col = "red")
+```
+
+## Result: Modifying basic aspects of the graph
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+ts.plot(AirPassengers, 
+        ylab = "International airline passengers",
+        xlab = "", 
+        lwd = 2, col = "red")
+```
+
+
+
+## Adding a grid 
+```{r, echo = TRUE, results="hide", fig.show = 'hide'}
+ts.plot(AirPassengers, 
+        ylab = "Internat. airline passengers", 
+        xlab = "", 
+        lwd = 2, 
+        col = "red")
+
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+```
+
+## Result: Adding a grid 
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+ts.plot(AirPassengers, 
+        ylab = "Internat. airline passengers",
+        xlab = "", 
+        lwd = 2, col = "red")
+
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+```
+
+
+
+## Multiple time series and legends 
+```{r, echo = TRUE, results="hide", fig.show = 'hide'}
+ts.plot(EuStockMarkets[, "SMI"], 
+             EuStockMarkets[, "CAC"], 
+        ylab = "Closing Price Index", 
+        xlab = "", 
+        lwd = 2, 
+        col = c("red", "blue"))
+
+grid(NULL, NULL, lwd = 1, col = "gray61")
+
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"),
+       lwd = 2, bg = "white" )
+```
+
+
+## Result: Multiple time series and legends 
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+ts.plot(EuStockMarkets[, "SMI"], 
+             EuStockMarkets[, "CAC"], 
+        ylab = "Closing Price Index", 
+        xlab = "", 
+        lwd = 2, 
+        col = c("red", "blue"))
+grid(NULL, NULL, lwd = 1, col = "gray61")
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"),
+       lwd = 2, bg = "white" )
+
+```
+
+
+## Second axis
+```{r, echo = TRUE, eval=FALSE, results="hide", fig.show = 'hide'}
+# we overlay 2 plots
+# 1st plot
+ts.plot(EuStockMarkets[, "SMI"], 
+        ylab = "SMI",  xlab = "", ylim = c(0, 10000),
+        lwd = 2, col = "red")
+# 2nd plot
+par(new=T)  ##new graphic parameters
+ts.plot(EuStockMarkets[, "CAC"], 
+        ylab = "", xlab = "", ylim = c(0, 5000), 
+        lwd = 2, col = "blue",
+        gpars = list( yaxt="n"))  ##suppress 1st axis
+# add 2nd axis
+axis(side = 4) ##1st axis has side = 2
+grid(NULL, NULL, lwd = 1, col = "gray61")
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"), lwd = 2, bg = "white" )
+```
+
+
+## Result: Second axis
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+ts.plot(EuStockMarkets[, "SMI"], 
+        ylab = "",  xlab = "", ylim = c(0, 10000),
+        lwd = 2, col = "red")
+par(new=T)
+ts.plot(EuStockMarkets[, "CAC"], 
+        ylab = "", xlab = "", ylim = c(0, 5000), 
+        lwd = 2, col = "blue",
+        gpars = list( yaxt="n"))
+# add 2nd axis and same color as line
+axis(side = 4) ##1st axis: side = 2
+grid(NULL, NULL, lwd = 1, col = "gray61")
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"),
+       lwd = 2, bg = "white" )
+```
+
+
+
+
+## Multiple axes with colors
+```{r, echo = TRUE, results="hide", fig.show = 'hide'}
+ts.plot(EuStockMarkets[, "SMI"], 
+        ylab = "",  xlab = "", ylim = c(0, 10000),
+        lwd = 2, col = "red")
+par(new=T)
+ts.plot(EuStockMarkets[, "CAC"], 
+        ylab = "", xlab = "", ylim = c(0, 5000), 
+        lwd = 2, col = "blue",
+        gpars = list( yaxt="n"))
+# add 2nd axis and use same color as data it represents
+axis(side = 4, 
+     col="blue", col.ticks="blue", col.axis="blue") 
+grid(NULL, NULL, lwd = 1, col = "gray61")
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"), lwd = 2, bg = "white" )
+```
+
+
+## Result: Multiple axes with colors
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+ts.plot(EuStockMarkets[, "SMI"], 
+        ylab = "",  xlab = "", ylim = c(0, 10000),
+        lwd = 2, col = "red")
+par(new=T)
+ts.plot(EuStockMarkets[, "CAC"], 
+        ylab = "", xlab = "", ylim = c(0, 5000), 
+        lwd = 2, col = "blue",
+        gpars = list( yaxt="n"))
+# add 2nd axis and same color as line
+axis(side = 4, 
+     col="blue", col.ticks="blue", col.axis="blue") 
+grid(NULL, NULL, lwd = 1, col = "gray61")
+legend("topleft", inset=c(0.01, 0.01), ncol = 1,
+       legend = c ("SMI", "CAC"),
+       col = c("red", "blue"),
+       lwd = 2, bg = "white" )
+```
+
+
+
+## Time series of the world unite! The tsbox package
+- Many time series packages exist, all have own object class, \newline
+  e.g., zoo, xts, tsibble, timeSeries, ...
+  
+```{r, echo=TRUE, eval=FALSE}
+library(tsbox) ## (by Christoph Sax) 
+```
+- provides a set of tools that are agnostic towards existing standards
+- even handles time series as plain data frames, allowing for dplyr or data.table workflow
+\medskip
+
+- tsbox does many more things, especially:
+    - Convert everything into everything 
+    - Change frequency with *ts_frequency*
+    - Create indices with *ts_index*
+    - Forecasting with *ts_forecast*
+    - Seasonal adjustment with *ts_seas*
+
+
+## Plotting with tsbox: ts_plot and ts_ggplot
+
+- ts.plot can only deal with ts objects
+- ts.plot cannot plot different frequencies
+
+\medskip
+
+- ts_plot 
+    - plots different frequencies
+    - fast and simple
+    - for all time series classes, not only ts
+    - limited customizability
+
+\medskip
+
+- ts_ggplot 
+    - same syntax and similar plots as ts_plot
+    - $+$ ggplot2 graphic system
+    - can be highly customized
+
+## Example: ts_plot
+
+```{r, echo = TRUE, eval = FALSE, fig.show=FALSE}
+library(tsbox)
+ts_plot( Passengers = AirPassengers,
+         "Annual US revenue" = airmiles/100,
+  title = "Airline Data",
+  subtitle = "The classic R sample data"
+)
+```
+
+
+## Example: ts_plot
+
+```{r, echo = FALSE, fig.height = 5, fig.width = 6, fig.align = "center"}
+library(tsbox)
+ts_plot( Passengers = AirPassengers,
+         "Annual US revenue" = airmiles/100,
+  title = "Airline Data",
+  subtitle = "The classic R sample data"
+)
+```
